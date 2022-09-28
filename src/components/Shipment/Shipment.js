@@ -3,15 +3,44 @@ import { useForm } from 'react-hook-form';
 import './Shipment.css';
 import { useContext } from 'react';
 import { UserContext } from '../../App';
+import { getDatabaseCart, processOrder } from '../../utilities/databaseManager';
 
 const Shipment = () => {
   const { register, handleSubmit, watch, errors } = useForm();
   const [loggedInUser, setLoggedInUser] = useContext(UserContext);
+  // const {parse, stringify, toJSON, fromJSON} = require('flatted');
+  
   const onSubmit = data => {
-      console.log('form submitted', data)
+    // const {parse, stringify} = require('flatted/cjs');
+
+    const savedCart = getDatabaseCart();
+    const orderDetails ={...loggedInUser, products:savedCart, shipment:data, orderTime:new Date()};
+    console.log(orderDetails);
+    // orderDetails[0].orderDetails = orderDetails;
+    // orderDetails.push(orderDetails);
+   
+
+
+    fetch('http://localhost:4000/addOrder',{
+      method:'POST',
+      headers: {
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(orderDetails)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data){
+        // console.log(data);
+        
+        alert("Your Order Placed Successfully!")
+        processOrder();
+      }
+    })
+      
     };
 
-  console.log(watch("example")); // watch input value by passing the name of it
+  // console.log(watch("Order Send to Database")); // watch input value by passing the name of it
 
   return (
     <form className="ship-form" onSubmit={handleSubmit(onSubmit)}>
